@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import dotenv from "dotenv";
 import authroutes from "./routes/auth.routes.js"
 import userroutes from "./routes/user.router.js"
@@ -13,7 +14,7 @@ cloudinary.config({
     api_key:process.env.CLOUDINARY_API_KEY,
     api_secret:process.env.CLOUDINARY_API_SECRET
 })
-
+const __dirname = path.resolve()
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -23,7 +24,14 @@ app.use(cookieParser());
 app.use("/api/auth",authroutes);
 app.use("/api/users",userroutes);
 app.use("/api/posts",postroutes);
-app.use("/api/notifications",notificationroutes)
+app.use("/api/notifications",notificationroutes);
+if (process.env.NODE_ENV === "production") {
+	app.use(express.static(path.join(__dirname, "/frontend/dist")));
+
+	app.get("*", (req, res) => {
+		res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+	});
+}
 app.listen(PORT,()=>{
     console.log(`server running on ${PORT} `)
     connectmongodb()
